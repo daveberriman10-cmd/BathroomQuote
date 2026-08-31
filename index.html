@@ -220,6 +220,12 @@ small{color:var(--muted)}@media(max-width:600px){.grid{grid-template-columns:1fr
     <div class="panel-badge" id="sidePackageType">Set / custom not chosen</div>
   </div>
   <div class="panel-section">
+    <div class="panel-label">Selected products</div>
+    <div class="panel-line panel-product"><span>WC</span><b id="sideWC">—</b></div>
+    <div class="panel-line panel-product"><span>Vanity</span><b id="sideVanity">—</b></div>
+    <div class="panel-line panel-product"><span>Shower</span><b id="sideShower">—</b></div>
+  </div>
+  <div class="panel-section">
     <div class="panel-label">Price</div>
     <div class="panel-line"><span>Package</span><b id="sideBasePrice">£0.00</b></div>
     <div class="panel-line"><span>Adjustments</span><b id="sideAdjustments">£0.00</b></div>
@@ -280,7 +286,7 @@ function updateLivePanel(sell){
   var n=el('name'),a=el('address'),p=el('package');
   var customer=(n&&n.value.trim())||'Not entered yet';
   var addr=(a&&a.value.trim())||'';
-  var sc=el('sideCustomer'),sa=el('sideAddress'),sr=el('sideRoom'),sg=el('sideConfig'),sp=el('sidePackage'),spt=el('sidePackageType'),sb=el('sideBasePrice'),su=el('sideAdjustments'),st=el('sideTotal');
+  var sc=el('sideCustomer'),sa=el('sideAddress'),sr=el('sideRoom'),sg=el('sideConfig'),sp=el('sidePackage'),spt=el('sidePackageType'),swc=el('sideWC'),sv=el('sideVanity'),ssh=el('sideShower'),sb=el('sideBasePrice'),su=el('sideAdjustments'),st=el('sideTotal');
   if(sc){sc.textContent=customer;sc.className='panel-value'+(customer==='Not entered yet'?' panel-empty':'')}
   if(sa)sa.textContent=addr;
   if(sr)sr.textContent=friendlyRoom(roomType);
@@ -289,6 +295,9 @@ function updateLivePanel(sell){
   var adj=val('upgrades');
   if(sp){sp.textContent=selectedPackage==='st-james'?'St James':(selectedPackage==='scratch'?'Create From Scratch':(p?selText('package'):'No package selected'));sp.className='panel-value'+(!selectedPackage?' panel-empty':'')}
   if(spt)spt.textContent=selectedPackage==='st-james'?'Set Package':selectedPackage==='scratch'?'Custom Package':'Package not chosen';
+  if(swc)swc.textContent=selText('wc')||'—';
+  if(sv)sv.textContent=selText('vanity')||'—';
+  if(ssh)ssh.textContent=selText('shower')||'—';
   if(sb)sb.textContent=money(base);
   if(su)su.textContent=(adj>0?'+ ':'')+money(adj);
   if(st)st.textContent=money(typeof sell==='number'?sell:base+adj);
