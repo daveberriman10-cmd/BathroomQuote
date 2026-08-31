@@ -228,7 +228,8 @@ small{color:var(--muted)}@media(max-width:600px){.grid{grid-template-columns:1fr
   <div class="panel-section">
     <div class="panel-label">Price</div>
     <div class="panel-line"><span>Package</span><b id="sideBasePrice">£0.00</b></div>
-    <div class="panel-line"><span>Adjustments</span><b id="sideAdjustments">£0.00</b></div>
+    <div class="panel-line"><span>Product changes</span><b id="sideProductAdjustments">£0.00</b></div>
+    <div class="panel-line"><span>Job extras</span><b id="sideAdjustments">£0.00</b></div>
     <div class="panel-price" id="sideTotal">£0.00</div>
     <div class="panel-muted">Current customer quote</div>
   </div>
@@ -282,27 +283,35 @@ function selectStJames(){roomType='bathroom';selectedPackage='st-james';setActiv
 function packageChanged(s){var o=s.options[s.selectedIndex];if(o&&o.getAttribute('data-package')==='st-james')selectStJames();else{selectedPackage='scratch';var c=el('stJamesCard');if(c)c.classList.remove('selected');var pc=el('packageContentsCard');if(pc)pc.style.display='none';calc()}}
 function friendlyRoom(v){return v==='cloak'?'Cloak':v==='ensuite'?'En-suite':v==='conversion'?'Bath → Shower Conversion':'Bathroom'}
 function friendlyConfig(v){return v==='shower'?'Shower only':v==='bathonly'?'Bath only':v==='both'?'Bath + separate shower':v==='cloak'?'Cloak':'Bath with shower'}
+function stJamesProductAdjustment(){
+  if(selectedPackage!=='st-james')return 0;
+  var included={wc:619.50,vanity:487.45,shower:295.05};
+  return (selCost('wc')-included.wc)+(selCost('vanity')-included.vanity)+(selCost('shower')-included.shower);
+}
 function updateLivePanel(sell){
   var n=el('name'),a=el('address'),p=el('package');
   var customer=(n&&n.value.trim())||'Not entered yet';
   var addr=(a&&a.value.trim())||'';
-  var sc=el('sideCustomer'),sa=el('sideAddress'),sr=el('sideRoom'),sg=el('sideConfig'),sp=el('sidePackage'),spt=el('sidePackageType'),swc=el('sideWC'),sv=el('sideVanity'),ssh=el('sideShower'),sb=el('sideBasePrice'),su=el('sideAdjustments'),st=el('sideTotal');
+  var sc=el('sideCustomer'),sa=el('sideAddress'),sr=el('sideRoom'),sg=el('sideConfig'),sp=el('sidePackage'),spt=el('sidePackageType'),swc=el('sideWC'),sv=el('sideVanity'),ssh=el('sideShower'),sb=el('sideBasePrice'),spu=el('sideProductAdjustments'),su=el('sideAdjustments'),st=el('sideTotal');
   if(sc){sc.textContent=customer;sc.className='panel-value'+(customer==='Not entered yet'?' panel-empty':'')}
   if(sa)sa.textContent=addr;
   if(sr)sr.textContent=friendlyRoom(roomType);
   if(sg)sg.textContent=friendlyConfig(config);
   var base=selectedPackage==='st-james'?6700:val('package');
+  var productAdj=stJamesProductAdjustment();
   var adj=val('upgrades');
+  var totalAdj=productAdj+adj;
   if(sp){sp.textContent=selectedPackage==='st-james'?'St James':(selectedPackage==='scratch'?'Create From Scratch':(p?selText('package'):'No package selected'));sp.className='panel-value'+(!selectedPackage?' panel-empty':'')}
   if(spt)spt.textContent=selectedPackage==='st-james'?'Set Package':selectedPackage==='scratch'?'Custom Package':'Package not chosen';
   if(swc)swc.textContent=selText('wc')||'—';
   if(sv)sv.textContent=selText('vanity')||'—';
   if(ssh)ssh.textContent=selText('shower')||'—';
   if(sb)sb.textContent=money(base);
-  if(su)su.textContent=(adj>0?'+ ':'')+money(adj);
-  if(st)st.textContent=money(typeof sell==='number'?sell:base+adj);
+  if(spu)spu.textContent=(productAdj>0?'+ ':productAdj<0?'− ':'')+money(Math.abs(productAdj));
+  if(su)su.textContent=(adj>0?'+ ':adj<0?'− ':'')+money(Math.abs(adj));
+  if(st)st.textContent=money(typeof sell==='number'?sell:base+totalAdj);
 }
-function calc(){var L=val('length')/1000,W=val('width')/1000,H=val('height')/1000,wall=Math.max(0,2*(L+W)*H-val('door')-val('window')),floorArea=L*W;var sell=(selectedPackage==='st-james'?6700:val('package'))+val('upgrades');var productCost=selCost('wc')+selCost('vanity')+selCost('shower')+val('tray')+val('towel')+val('otherproducts');var cost=productCost+val('cladding')+val('ceiling')+val('floor')+val('kit')+val('rubbish')+val('fitters')+val('othercost'),profit=sell-cost,margin=sell?profit/sell*100:0;wall*=1+val('waste')/100;el('wallarea').textContent=wall.toFixed(1)+' m² incl. waste';el('floorarea').textContent=floorArea.toFixed(1)+' m²';el('sell').textContent=money(sell);el('cost').textContent=money(cost);el('profit').textContent=money(profit);el('margin').textContent=margin.toFixed(1)+'%';el('margin').className=margin>=25?'good':'warn';el('headline').textContent='Fully supplied & installed: '+money(sell);el('order').textContent='PACKAGE: '+(selectedPackage==='st-james'?'St James':selText('package'))+'\nROOM TYPE: '+roomType+'\nCONFIGURATION: '+config+'\nWC: '+selText('wc')+'\nVANITY: '+selText('vanity')+'\nSHOWER: '+selText('shower');updateLivePanel(sell)}
+function calc(){var L=val('length')/1000,W=val('width')/1000,H=val('height')/1000,wall=Math.max(0,2*(L+W)*H-val('door')-val('window')),floorArea=L*W;var sell=(selectedPackage==='st-james'?6700:val('package'))+stJamesProductAdjustment()+val('upgrades');var productCost=selCost('wc')+selCost('vanity')+selCost('shower')+val('tray')+val('towel')+val('otherproducts');var cost=productCost+val('cladding')+val('ceiling')+val('floor')+val('kit')+val('rubbish')+val('fitters')+val('othercost'),profit=sell-cost,margin=sell?profit/sell*100:0;wall*=1+val('waste')/100;el('wallarea').textContent=wall.toFixed(1)+' m² incl. waste';el('floorarea').textContent=floorArea.toFixed(1)+' m²';el('sell').textContent=money(sell);el('cost').textContent=money(cost);el('profit').textContent=money(profit);el('margin').textContent=margin.toFixed(1)+'%';el('margin').className=margin>=25?'good':'warn';el('headline').textContent='Fully supplied & installed: '+money(sell);el('order').textContent='PACKAGE: '+(selectedPackage==='st-james'?'St James':selText('package'))+'\nROOM TYPE: '+roomType+'\nCONFIGURATION: '+config+'\nWC: '+selText('wc')+'\nVANITY: '+selText('vanity')+'\nSHOWER: '+selText('shower');updateLivePanel(sell)}
 function saveDefaults(){try{localStorage.setItem('bathroomPackageDefaults',JSON.stringify({price_cloak:el('price_cloak').value,price_ensuite:el('price_ensuite').value,price_ensuite_reboard:el('price_ensuite_reboard').value,price_bathroom:el('price_bathroom').value,price_bathroom_reboard:el('price_bathroom_reboard').value,price_conversion:el('price_conversion').value}))}catch(e){}rebuildPackageOptions();calc();alert('Package defaults saved')}
 function loadDefaults(){try{var d=JSON.parse(localStorage.getItem('bathroomPackageDefaults')||'{}');for(var k in d)if(el(k))el(k).value=d[k]}catch(e){}}
 function saveJob(){saveStructuredQuote()}
